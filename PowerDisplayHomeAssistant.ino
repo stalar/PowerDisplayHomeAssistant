@@ -8,7 +8,7 @@
 #include <TFT_eWidget.h>               // Widget library
 #include "icons.h"
 #include "settings.h"
-#define BLANKTEXT "                               " // Text that will be printed on screen in any font
+#define BLANKTEXT "                                       " // Text that will be printed on screen in any font
         
 // Define colours used in graph etc.
 #define DKGREY    0x4A49
@@ -106,7 +106,7 @@ void setup(void) {
 
 // For HTTPS requests only. Keep commented otherwise! 
 // If you don't need to check the fingerprint
-     client.setInsecure();
+//     client.setInsecure();
 // If you want to check the fingerprint
     // client.setFingerprint(HA_HOST_FINGERPRINT);
   
