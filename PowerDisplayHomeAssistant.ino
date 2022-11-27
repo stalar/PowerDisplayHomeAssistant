@@ -74,16 +74,14 @@ String message = "";
 bool messageReady = false;
 
 // Handle delays
-unsigned long powerStarted, priceStarted, graphStarted, nordpoolStarted = 0;
+unsigned long powerStarted, priceStarted, graphStarted = 0;
 const long powerInterval = 10000;
 const long priceInterval = 20000;
 const long graphInterval = 120000;
 
 // Price level
 String price_kr, currentPrice_kr;
-String currentPriceLevel = "NORMAL";
 String price = "Normalt";
-String priceLevel;
 String currentPower;
 String dailyEnergy;
 float accumulatedCost, prevDailyEnergy;
@@ -192,7 +190,6 @@ void loop() {
       
     // Check price level
     price_kr = ExtractJSONAttribute(document,  "state");  
-    priceLevel = ExtractJSONAttribute(document, "attributes", "price_level");  
 
     document = makeGETRequest(SENSOR_CURRENT_CONSUMPTION);    
     currentPowerConsumption = ExtractJSONAttribute(document, "state").toFloat();
@@ -225,7 +222,7 @@ void loop() {
   }
 }
 
-void CreateGraph (int xPos, int yPos, float maxPriceToday ) 
+void CreateGraph(int xPos, int yPos, float maxPriceToday, int startHour) 
 {
   // Clear scale in y axis
   tft.fillRect(xPos-10, yPos, 20, 90, TFT_BLACK);
@@ -246,7 +243,7 @@ void CreateGraph (int xPos, int yPos, float maxPriceToday )
   // Draw the x axis scale
   tft.setTextDatum(TC_DATUM); // Top centre text datum
   for (int x=2; x<=24; x+=2){
-    tft.drawNumber(x, gr.getPointX(x), gr.getPointY(0.0) + 3);  
+    tft.drawNumber((startHour + x) % 24, gr.getPointX(x), gr.getPointY(0.0) + 3);  
   }
 
   // Draw the y axis scale
@@ -258,28 +255,50 @@ void CreateGraph (int xPos, int yPos, float maxPriceToday )
 
 void PlotGraph (DynamicJsonDocument nordPoolDocument, int hours, int minutes)
 {
+  Serial.println("***************************");
   double lastprice = 0;
   double price;
-  float maxPricetoday = nordPoolDocument["attributes"]["max"];
-  Serial.println("***************************");
-  Serial.print("Max price today: ");
-  Serial.println(maxPricetoday);
-  CreateGraph (10, 128, maxPricetoday);
-  PlotTimeline(maxPricetoday, hours, minutes);
   
-  for (int priceCount=0;priceCount<24;priceCount++)
-  {
-    price = nordPoolDocument["attributes"]["today"][priceCount];
-    lastprice = AddPrice(priceCount, price,  priceCount-1,  lastprice);
+  bool tomorrowValid = nordPoolDocument["attributes"]["tomorrow_valid"];
+  double prices[24 * 2];
+  for (int i = 0; i < 24; i++) {
+    prices[i] = nordPoolDocument["attributes"]["today"][i];
   }
-  price = nordPoolDocument["attributes"]["tomorrow"][0];
-  if (price > 0)
-    lastprice = AddPrice(24, price,  23,  lastprice);
+  if (tomorrowValid) {
+    for (int i = 0; i < 24; i++) {
+      prices[24 + i] = nordPoolDocument["attributes"]["tomorrow"][i];
+    }
+  }
+
+  int startHour = 0;
+  if (tomorrowValid) {
+    startHour = hours - 4;
+  }
+  Serial.print("startHour: ");
+  Serial.println(startHour);
+
+  double maxPrice = 0;  
+  for (int i = 0; i < 24; i++) {
+    maxPrice = max(maxPrice, prices[startHour + i]);
+  }
+  Serial.print("Max price today/tomorrow: ");
+  Serial.println(maxPrice);
+
+  CreateGraph(10, 128, maxPrice, startHour);
+  PlotTimeline(maxPrice, hours - startHour, minutes);
+
+  for (int i = startHour; i < startHour + 24; i++)
+  {
+    price = prices[i];
+    lastprice = AddPrice(i - startHour, price, i-1-startHour, lastprice);
+  }
+  if (tomorrowValid) {
+    AddPrice(24, prices[startHour + 23],  23,  lastprice);
+  }
 }
 
 void PlotTimeline(float maxPriceToday, int hours, int minutes)
 {
-  Serial.println("Timeline value: ");
   double timeLineVal = hours + (minutes/60);
   tr2.startTrace(LTGREY);
   tr2.addPoint(timeLineVal, 0);
@@ -323,7 +342,7 @@ void WriteCurrentPower(int xPos, int yPos, int nCurrentPower)
   tft.drawCentreString(BLANKTEXT, xPos, yPos, GFXFF);// Clear the line  
   tft.drawCentreString(currentPower + " W", xPos, yPos, GFXFF);  
   if (nCurrentPower > 0)
-     tft.pushImage(xPos-115, yPos-5, 32, 32, electric_pole);
+     tft.pushImage(xPos-115, yPos-5, 32, 32, electrical_tower32);
   else
      tft.pushImage(xPos-115, yPos-5, 32, 32, sunny_solar32);
 }
