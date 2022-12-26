@@ -98,7 +98,6 @@ bool graphDrawn = false;
 const float gxLow  = 0.0;
 const float gxHigh = 24.0; // Number of hours
 const float gyLow  = 0.0;
-const float gyHigh = 11.00; // Max price
 static float gx = 0.0, gy = 0.0;
 
   
@@ -281,6 +280,8 @@ void PlotGraph (DynamicJsonDocument nordPoolDocument, int hours, int minutes)
   for (int i = 0; i < 24; i++) {
     maxPrice = max(maxPrice, prices[startHour + i]);
   }
+  // Graph crashes if y-max is below 1.0
+  maxPrice = max(maxPrice, 1.0);
   Serial.print("Max price today/tomorrow: ");
   Serial.println(maxPrice);
 
