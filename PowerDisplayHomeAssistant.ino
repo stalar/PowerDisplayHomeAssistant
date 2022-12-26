@@ -225,6 +225,8 @@ void CreateGraph(int xPos, int yPos, float maxPriceToday, int startHour)
 {
   // Clear scale in y axis
   tft.fillRect(xPos-10, yPos, 20, 90, TFT_BLACK);
+  // Clear scale in x axis
+  tft.fillRect(xPos, yPos+80, 220, 10, TFT_BLACK);
   tft.setFreeFont();                 // Select the font
   tft.setTextSize(1);
   // Graph area is 220 pixels wide, 80 pixels high, dark grey background
