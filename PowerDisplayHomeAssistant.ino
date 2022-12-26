@@ -318,6 +318,7 @@ double AddPrice(int hour, double price, int lastHour, double lastPrice)
     
   tr.startTrace(PriceColour(lastPrice));
   tr.addPoint(lastHour, lastPrice); 
+  tr.addPoint(lastHour, price); 
   tr.addPoint(hour, price);
   return price;
 }
