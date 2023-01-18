@@ -8,6 +8,7 @@
 #include <TFT_eWidget.h>               // Widget library
 #include "icons.h"
 #include "settings.h"
+#include <math.h>
 #define BLANKTEXT "                                       " // Text that will be printed on screen in any font
         
 // Define colours used in graph etc.
@@ -370,7 +371,6 @@ void WritePriceText(int xPos, int yPos)
     currentPrice_kr = price_kr;
     float nNewPrice = price_kr.toFloat();
     bgColour = TFT_BLACK;
-    //price = PriceText(nNewPrice);
     
     if (inRange(nNewPrice, EXTREMELY_EXPENSIVE, 100)) {price = "Extremt dyrt";}
     else if (inRange(nNewPrice, VERY_EXPENSIVE, EXTREMELY_EXPENSIVE)){price = "Mycket dyrt";}
@@ -380,11 +380,12 @@ void WritePriceText(int xPos, int yPos)
     else if (inRange(nNewPrice, VERY_CHEAP, CHEAP)){price = "Mycket Billigt";}
     else if (inRange(nNewPrice, 0, VERY_CHEAP)){price = "Mycket billigt";} 
 
-    
+    String rounded_price_kr = String(((int)round(nNewPrice * 100)) / 100.0);
+
     textHighlightColour = PriceColour(nNewPrice);
     tft.setFreeFont(FF18);                 // Select the font
     tft.drawCentreString(BLANKTEXT, xPos, yPos, GFXFF);// Clear the line  
-    tft.drawCentreString(price_kr + " kr/kWh", xPos, yPos, GFXFF);  
+    tft.drawCentreString(rounded_price_kr + " kr/kWh", xPos, yPos, GFXFF);  
     tft.setFreeFont(FF23);                 // Select the font
     tft.setTextColor(textHighlightColour, bgColour); 
     tft.drawCentreString(BLANKTEXT, xPos, yPos+30, GFXFF);// Clear the line  
