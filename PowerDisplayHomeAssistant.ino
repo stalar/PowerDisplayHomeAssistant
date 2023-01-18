@@ -185,10 +185,10 @@ void loop() {
   // Execute every 20 seconds
   if (currentMillis - priceStarted >= priceInterval) {
     priceStarted = currentMillis;
-    document = makeGETRequest(SENSOR_ELECTRICITY_PRICE);  
+    document = makeGETRequest(SENSOR_TIBBER);  
       
     // Check price level
-    price_kr = ExtractJSONAttribute(document,  "state");  
+    price_kr = String(document["attributes"]["current"]["total"]);
 
     document = makeGETRequest(SENSOR_CURRENT_CONSUMPTION);    
     currentPowerConsumption = ExtractJSONAttribute(document, "state").toFloat();
@@ -212,11 +212,11 @@ void loop() {
     graphDrawn = true;
 
     document = makeGETRequest(SENSOR_TIME);    
-    String last_changed = ExtractJSONAttribute(document,  "state"); // 20:06
-    int hours = last_changed.substring(0, 2).toInt();
-    int minutes = last_changed.substring(3, 5).toInt();
+    String currentTime = ExtractJSONAttribute(document,  "state"); // 20:06
+    int hours = currentTime.substring(0, 2).toInt();
+    int minutes = currentTime.substring(3, 5).toInt();
 
-    document = makeGETRequest(SENSOR_NORDPOOL);  
+    document = makeGETRequest(SENSOR_TIBBER);  
     PlotGraph(document, hours, minutes);  
   }
 }
@@ -254,20 +254,20 @@ void CreateGraph(int xPos, int yPos, float maxPriceToday, int startHour)
   }   
 }
 
-void PlotGraph (DynamicJsonDocument nordPoolDocument, int hours, int minutes)
+void PlotGraph (DynamicJsonDocument tibberDocument, int hours, int minutes)
 {
   Serial.println("***************************");
   double lastprice = 0;
   double price;
   
-  bool tomorrowValid = nordPoolDocument["attributes"]["tomorrow_valid"];
+  bool tomorrowValid = tibberDocument["attributes"]["tomorrow"].size() != 0;
   double prices[24 * 2];
   for (int i = 0; i < 24; i++) {
-    prices[i] = nordPoolDocument["attributes"]["today"][i];
+    prices[i] = tibberDocument["attributes"]["today"][i]["total"];
   }
   if (tomorrowValid) {
     for (int i = 0; i < 24; i++) {
-      prices[24 + i] = nordPoolDocument["attributes"]["tomorrow"][i];
+      prices[24 + i] = tibberDocument["attributes"]["tomorrow"][i]["total"];
     }
   }
 
@@ -293,7 +293,7 @@ void PlotGraph (DynamicJsonDocument nordPoolDocument, int hours, int minutes)
   for (int i = startHour; i < startHour + 24; i++)
   {
     price = prices[i];
-    lastprice = AddPrice(i - startHour, price, i-1-startHour, lastprice);
+    lastprice = AddPrice(i - startHour, price, i - startHour - 1, lastprice);
   }
   if (tomorrowValid) {
     AddPrice(24, prices[startHour + 23],  23,  lastprice);
@@ -302,7 +302,7 @@ void PlotGraph (DynamicJsonDocument nordPoolDocument, int hours, int minutes)
 
 void PlotTimeline(float maxPriceToday, int hours, int minutes)
 {
-  double timeLineVal = hours + (minutes/60);
+  double timeLineVal = hours + (minutes/60.0);
   tr2.startTrace(LTGREY);
   tr2.addPoint(timeLineVal, 0);
   tr2.addPoint(timeLineVal, maxPriceToday);
@@ -318,7 +318,7 @@ double AddPrice(int hour, double price, int lastHour, double lastPrice)
     
   tr.startTrace(PriceColour(lastPrice));
   tr.addPoint(lastHour, lastPrice); 
-  tr.addPoint(lastHour, price); 
+  tr.addPoint(hour, lastPrice); 
   tr.addPoint(hour, price);
   return price;
 }
@@ -571,14 +571,16 @@ void reconnect()
 
 String ExtractJSONAttribute(DynamicJsonDocument doc, String attribute)
 {
-  String value = doc[attribute].as<char*>();
+  const char* v = doc[attribute];
+  String value = String(v);
   Serial.println("Attribute: " + attribute + "  Value: " + value);
   return value;
 }
 
 String ExtractJSONAttribute(DynamicJsonDocument doc, String attribute1, String attribute2)
 {
-  String value = doc[attribute1][attribute2].as<char*>();
+  const char* v = doc[attribute1][attribute2];
+  String value = String(v);
   Serial.println("Attribute: " + attribute1 + "/" + attribute2 + "  Value: " + value);
   return value;
 }
@@ -593,7 +595,8 @@ double ExtractJSONAttributeFloat(DynamicJsonDocument doc, String attribute1, Str
 
 String ExtractJSONAttribute(DynamicJsonDocument doc, String attribute1, String attribute2, String attribute3)
 {
-  String value = doc[attribute1][attribute2][attribute3].as<char*>();
+  const char* v = doc[attribute1][attribute2][attribute3];
+  String value = String(v);
   Serial.println("Attribute: " + attribute1 + "/" + attribute2 + "/" + attribute3 + "  Value: " + value);
   return value;
 }
