@@ -10,10 +10,10 @@
 #define EXTREMELY_EXPENSIVE 5.0
 
 // Enter just the base of the URL to Home Assistant (not http://)
-#define HA_HOST "<my home assistant host name or ip>"
+#define HA_HOST "homeassistant.local"
 
 // Set to true if using https, otherwise set to false.
-#define SECURE_SERVER true
+#define SECURE_SERVER false
 
 // For HTTPS requests. Uncomment if using https.
   // WiFiClientSecure client;
@@ -36,11 +36,12 @@ String bearerToken = "<my bearer token string goes here - check the link above t
 
 // Set up your sensors, as they are named in your Home Assistant installation
 //#define SENSOR_CURRENT_CONSUMPTION "sensor.house_power_consumption" // If using Home Assistant Glow pulse counter. https://klaasnicolaas.github.io/home-assistant-glow/
-#define SENSOR_CURRENT_CONSUMPTION "sensor.momentary_active_import" // If using ESPHome HAN port reader  https://github.com/psvanstrom/esphome-p1reader
+#define SENSOR_CURRENT_CONSUMPTION "sensor.qubino_3_phase_smart_meter_electric_consumption_w" // If using ESPHome HAN port reader  https://github.com/psvanstrom/esphome-p1reader
 #define SENSOR_POWER_MULTIPLIER 1 // Convert between kW and W, if needed. If the consumption is in kW then change this to 1000.
-#define SENSOR_CONSUMPTION_TODAY "sensor.forbrukning_huset_per_dag" // From Tibber
-#define SENSOR_ELECTRICITY_PRICE "sensor.nordpool" // From NordPool, but you can also use Tibber
-#define SENSOR_NORDPOOL "sensor.nordpool" // Expecting Home Assistant NordPool Integration. https://github.com/custom-components/nordpool
+#define SENSOR_CONSUMPTION_TODAY "sensor.energy_total_today"
+#define SENSOR_ELECTRICITY_PRICE "sensor.nordpool_kwh_se3_sek_3_10_025" // From NordPool, but you can also use Tibber
+#define SENSOR_NORDPOOL "sensor.nordpool_kwh_se3_sek_3_10_025" // Expecting Home Assistant NordPool Integration. https://github.com/custom-components/nordpool
+#define SENSOR_TIBBER "sensor.tibber_price"
 
 #define SOLAR_PANELS true // Change to true if using solar panels, and add the sensor below.
 #define SENSOR_CURRENT_PRODUCTION "sensor.momentary_active_export" // If using ESPHome HAN port reader  https://github.com/psvanstrom/esphome-p1reader
