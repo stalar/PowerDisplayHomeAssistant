@@ -186,10 +186,14 @@ void loop() {
   // Execute every 20 seconds
   if (currentMillis - priceStarted >= priceInterval) {
     priceStarted = currentMillis;
-    document = makeGETRequest(SENSOR_TIBBER);  
-      
+
+    document = makeGETRequest(SENSOR_TIME);    
+    String currentTime = ExtractJSONAttribute(document,  "state"); // 20:06
+    int hours = currentTime.substring(0, 2).toInt();
+
     // Check price level
-    price_kr = String(document["attributes"]["current"]["total"]);
+    document = makeGETRequest(SENSOR_TIBBER);  
+    price_kr = String(document["attributes"]["today"][hours]["total"]);
 
     document = makeGETRequest(SENSOR_CURRENT_CONSUMPTION);    
     currentPowerConsumption = ExtractJSONAttribute(document, "state").toFloat();
